@@ -1,0 +1,85 @@
+# version: '1.0'
+
+synthetics:
+  tests:
+    - type: 'api'
+      name: 'Timify API Health Check'
+      request:
+        method: 'GET'
+        url: 'https://your-timify-app-url.com/api/health'  # Replace with your actual API health endpoint
+        headers:
+          Accept: 'application/json'
+      assertions:
+        - type: 'statusCode'
+          operator: 'is'
+          target: 200
+        - type: 'json'
+          operator: 'is'
+          target: { "status": "ok" }  # Adjust based on your API response
+
+    - type: 'browser'
+      name: 'Timify Homepage Test'
+      request:
+        url: 'https://your-timify-app-url.com'  # Replace with your actual app URL
+      assertions:
+        - type: 'statusCode'
+          operator: 'is'
+          target: 200
+        - type: 'html'
+          operator: 'contains'
+          target: 'Timify'  # Check if the homepage contains the word "Timify"
+    
+    - type: 'api'
+      name: 'Pomodoro Timer Functionality'
+      request:
+        method: 'POST'
+        url: 'https://your-timify-app-url.com/api/start-timer'  # Replace with your actual timer start endpoint
+        headers:
+          Content-Type: 'application/json'
+        body:
+          workDuration: 25
+          breakDuration: 5
+      assertions:
+        - type: 'statusCode'
+          operator: 'is'
+          target: 200
+        - type: 'json'
+          operator: 'is'
+          target: { "message": "Timer started successfully" }  # Adjust basedThis workflow will trigger Datadog Synthetic tests within your Datadog organisation
+# For more information on running Synthetic tests within your GitHub workflows see: https://docs.datadoghq.com/synthetics/cicd_integrations/github_actions/
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# To get started:
+
+# 1. Add your Datadog API (DD_API_KEY) and Application Key (DD_APP_KEY) as secrets to your GitHub repository. For more information, see: https://docs.datadoghq.com/account_management/api-app-keys/.
+# 2. Start using the action within your workflow
+
+name: Run Datadog Synthetic tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    # Run Synthetic tests within your GitHub workflow.
+    # For additional configuration options visit the action within the marketplace: https://github.com/marketplace/actions/datadog-synthetics-ci
+    - name: Run Datadog Synthetic tests
+      uses: DataDog/synthetics-ci-github-action@87b505388a22005bb8013481e3f73a367b9a53eb # v1.4.0
+      with:
+        api_key: ${{secrets.DD_API_KEY}}
+        app_key: ${{secrets.DD_APP_KEY}}
+        test_search_query: 'tag:e2e-tests' #Modify this tag to suit your tagging strategy
+
+
